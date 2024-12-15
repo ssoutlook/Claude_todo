@@ -31,7 +31,7 @@
             margin-bottom: 20px;
         }
 
-        #todoInput {
+        #todoInput, .edit-input {
             flex: 1;
             padding: 8px;
             border: 1px solid #ddd;
@@ -73,14 +73,60 @@
             color: #888;
         }
 
+        .todo-text {
+            flex: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
         .delete-btn {
-            margin-left: auto;
             background-color: #ff4444;
             padding: 4px 8px;
         }
 
         .delete-btn:hover {
             background-color: #cc0000;
+        }
+
+        .edit-btn {
+            background-color: #2196F3;
+            padding: 4px 8px;
+        }
+
+        .edit-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        .save-btn {
+            background-color: #4CAF50;
+            padding: 4px 8px;
+        }
+
+        .cancel-btn {
+            background-color: #808080;
+            padding: 4px 8px;
+        }
+
+        .edit-input {
+            margin: 0 10px;
+        }
+
+        .edit-mode .todo-text {
+            display: none;
+        }
+
+        .edit-container {
+            display: none;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .edit-mode .edit-container {
+            display: block;
         }
     </style>
 </head>
@@ -141,6 +187,34 @@
             renderTodos();
         }
 
+        function editTodo(id) {
+            const todoItem = document.querySelector(`[data-id="${id}"]`);
+            todoItem.classList.add('edit-mode');
+            const input = todoItem.querySelector('.edit-input');
+            input.focus();
+        }
+
+        function saveTodoEdit(id) {
+            const todoItem = document.querySelector(`[data-id="${id}"]`);
+            const input = todoItem.querySelector('.edit-input');
+            const newText = input.value.trim();
+
+            if (newText) {
+                todos = todos.map(todo => {
+                    if (todo.id === id) {
+                        return { ...todo, text: newText };
+                    }
+                    return todo;
+                });
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function cancelEdit(id) {
+            renderTodos();
+        }
+
         function renderTodos() {
             const todoList = document.getElementById('todoList');
             todoList.innerHTML = '';
@@ -148,12 +222,21 @@
             todos.forEach(todo => {
                 const todoItem = document.createElement('div');
                 todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                todoItem.setAttribute('data-id', todo.id);
 
                 todoItem.innerHTML = `
                     <input type="checkbox" ${todo.completed ? 'checked' : ''} 
                            onclick="toggleTodo(${todo.id})">
-                    <span>${todo.text}</span>
-                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                    <span class="todo-text">${todo.text}</span>
+                    <div class="edit-container">
+                        <input type="text" class="edit-input" value="${todo.text}">
+                    </div>
+                    <div class="button-group">
+                        <button class="edit-btn" onclick="editTodo(${todo.id})">Edit</button>
+                        <button class="save-btn" onclick="saveTodoEdit(${todo.id})">Save</button>
+                        <button class="cancel-btn" onclick="cancelEdit(${todo.id})">Cancel</button>
+                        <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                    </div>
                 `;
 
                 todoList.appendChild(todoItem);
